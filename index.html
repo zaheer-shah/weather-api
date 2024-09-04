@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <input id="cityname" type="text" placeholder="enter city name">
+        <button id="searchbtn">search</button>
+    </div>
+    <div>
+        <div id="loading-message" style="display:none;">Loading, please wait...</div>
+
+        <h3 id="city-name">City Name will Display here</h3>
+        <p id="city-time">City local time</p>
+        <p id="city-temp">Temperature</p>
+        <p id="city-condition">Conditon</p>
+    </div>
+
+
+    <script>
+        const button = document.getElementById("searchbtn");
+        const input = document.getElementById("cityname");
+
+        const cityname = document.getElementById("city-name");
+        const citytime = document.getElementById("city-time");
+        const citytemp = document.getElementById("city-temp");
+        const citycondition = document.getElementById("city-condition"); // New element for condition
+        const loadingMessage = document.getElementById("loading-message");
+
+        async function getdata(cityname) {
+            const promise = await fetch(`https://api.weatherapi.com/v1/current.json?key=e2f55bd93ee448c8b31163132240409&q=${cityname}&aqi=yes`);
+            return await promise.json();
+        }
+
+        button.addEventListener("click", async () => {
+            const value = input.value;
+
+            // Show loading message
+            loadingMessage.innerHTML = "Loading, please wait...";
+
+            try {
+                const result = await getdata(value);
+//
+                console.log(result);
+
+                if (result.error) { // Adjusted to check for 'error' key in the response
+                    cityname.innerHTML = `<h3> CITY NOT FOUND</h3>`;
+                    citytime.innerHTML = ""; // Clear the previous time
+                    citytemp.innerHTML = ""; // Clear the previous temperature
+                    citycondition.innerHTML = ""; // Clear the previous condition
+                } else {
+                    cityname.innerHTML = `${result.location.name}, ${result.location.region}- ${result.location.country}`;
+                    citytime.innerHTML = `${result.location.localtime}`;
+                    citytemp.innerHTML = `${result.current.temp_c}°C`;
+
+                    // Access and display the condition information
+                    const condition = result.current.condition;
+                    citycondition.innerHTML = `
+                <p>${condition.text}</p>
+                <img src="${condition.icon}" alt="${condition.text}" />
+            `;
+                }
+            } catch (error) {
+                cityname.innerHTML = `<h3> CITY NOT FOUND</h3>`;
+                citytime.innerHTML = ""; // Clear the previous time
+                citytemp.innerHTML = ""; // Clear the previous temperature
+                citycondition.innerHTML = ""; // Clear the previous condition
+            } finally {
+                // Hide loading message
+                loadingMessage.innerHTML = "";
+            }
+
+        });
+
+    </script>
+</body>
+
+</html>
